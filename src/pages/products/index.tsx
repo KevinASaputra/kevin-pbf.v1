@@ -1,66 +1,59 @@
+import useSWR from "swr";
 import { retrieveProducts } from "@/common/utils/db/serviceFirebase";
-import { useEffect, useState } from "react";
 
 type Product = {
   id: string;
   name: string;
   price: number;
-  size?: string;
   category?: string;
 };
 
-const ProductsPage = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+const fetcher = async () => {
+  return await retrieveProducts("Products");
+};
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const data = await retrieveProducts("Products");
-      setProducts(data);
-    } catch (error) {
-      console.error("Error fetch products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function ProductsPage() {
+  const { data, error, isLoading, mutate } = useSWR<Product[]>(
+    "products",
+    fetcher
+  );
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  if (error) return <p>Error loading data</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Products</h1>
+    <div className="p-5">
+      <h1 className="text-xl font-semibold mb-4">Products</h1>
 
-      <button onClick={fetchData} style={{ marginBottom: "20px" }}>
+      <button
+        onClick={() => mutate()}
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
+      >
         Refresh Data
       </button>
 
-      {loading && <p>Loading...</p>}
-
-      {!loading && products.length === 0 && (
-        <p>Tidak ada data produk</p>
+      {isLoading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-20 bg-gray-200 rounded-lg animate-pulse"
+            />
+          ))}
+        </div>
       )}
 
-      {products.map((item) => (
-        <div
-          key={item.id}
-          style={{
-            border: "1px solid #ccc",
-            padding: "10px",
-            marginBottom: "10px",
-            borderRadius: "8px",
-          }}
-        >
-          <p>Nama: {item.name}</p>
-          <p>Harga: {item.price}</p>
-          <p>Size: {item.size || "-"}</p>
-          <p>Kategori: {item.category || "-"}</p>
-        </div>
-      ))}
+      <div className="space-y-3">
+        {data?.map((item) => (
+          <div
+            key={item.id}
+            className="border p-4 rounded-lg shadow-sm transform transition duration-300 hover:scale-[1.02] hover:shadow-md"
+          >
+            <p className="font-medium">Nama: {item.name}</p>
+            <p>Harga: {item.price}</p>
+            <p>Kategori: {item.category || "-"}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
-
-export default ProductsPage;
+}
