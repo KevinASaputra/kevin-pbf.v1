@@ -10,7 +10,7 @@ const Layouts = (layoutsProps: layoutsProps) => {
   const { children } = layoutsProps
   return (
     <Container>
-      <div className="flex flex-col min-h-screen ">
+      <div className="flex flex-col min-h-screen">
         <HeaderTop />
         {children}
         <Footer />
